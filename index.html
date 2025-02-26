@@ -18,34 +18,44 @@
             font-size: 16px;
             overflow: hidden;
             display: flex;
-            align-items: center;
-            justify-content: center;
             height: 100vh;
         }
 
-        .terminal {
+        .container {
+            display: flex;
             width: 100%;
             height: 100%;
-            padding: 20px;
+        }
+
+        .terminal {
+            flex: 3;
             display: flex;
             flex-direction: column;
-            justify-content: space-between;
+            padding: 20px;
+            border-right: 2px solid #00ff00;
         }
 
         .log {
             flex-grow: 1;
             overflow-y: auto;
             white-space: pre-wrap;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 10px;
+            border: 1px solid #00ff00;
+            height: 100%;
         }
 
         .stats {
             font-weight: bold;
             margin-bottom: 10px;
+            border-bottom: 2px solid #00ff00;
+            padding-bottom: 5px;
         }
 
         .controls {
             display: flex;
             gap: 10px;
+            margin-top: 10px;
         }
 
         button {
@@ -60,17 +70,63 @@
         button:hover {
             background: #00cc00;
         }
+
+        .side-app {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            background: #002200;
+            text-align: center;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 30px;
+            border: 2px solid #00ff00;
+            position: relative;
+            background: black;
+            margin-top: 20px;
+        }
+
+        .progress {
+            height: 100%;
+            width: 0%;
+            background: #00ff00;
+            transition: width 0.5s;
+        }
+
+        .btc-value {
+            margin-top: 10px;
+            font-size: 18px;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
-    <div class="terminal">
-        <div class="stats">
-            Bitcoin Balance: <span id="balance">0.00000000</span> BTC
+    <div class="container">
+        <!-- Terminal Mining Section -->
+        <div class="terminal">
+            <div class="stats">
+                Bitcoin Balance: <span id="balance">0.00000000</span> BTC
+            </div>
+            <div class="log" id="log"></div>
+            <div class="controls">
+                <button onclick="startMining()">Start Mining</button>
+                <button onclick="stopMining()">Stop Mining</button>
+            </div>
         </div>
-        <div class="log" id="log"></div>
-        <div class="controls">
-            <button onclick="startMining()">Start Mining</button>
-            <button onclick="stopMining()">Stop Mining</button>
+
+        <!-- Side App for BTC Progress -->
+        <div class="side-app">
+            <h2>BTC Progress</h2>
+            <div class="progress-bar">
+                <div class="progress" id="progress"></div>
+            </div>
+            <div class="btc-value">
+                <span id="progress-text">0.00000000 / 1.00000000 BTC</span>
+            </div>
         </div>
     </div>
 
@@ -78,6 +134,8 @@
         let mining = false;
         let logElement = document.getElementById("log");
         let balanceElement = document.getElementById("balance");
+        let progressBar = document.getElementById("progress");
+        let progressText = document.getElementById("progress-text");
         let balance = 0;
 
         function logMessage(message) {
@@ -105,6 +163,11 @@
             let earned = (Math.random() * 0.00001).toFixed(8); // Small BTC earnings per cycle
             balance += parseFloat(earned);
             balanceElement.innerText = balance.toFixed(8);
+            
+            // Update progress bar
+            let progressPercentage = Math.min((balance / 1) * 100, 100);
+            progressBar.style.width = progressPercentage + "%";
+            progressText.innerText = balance.toFixed(8) + " / 1.00000000 BTC";
 
             logMessage(`Mining block... Hashrate: ${hashRate} H/s | Earned: ${earned} BTC`);
             
