@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fake Crypto Tracker</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; }
+        .crypto-container { display: flex; flex-wrap: wrap; justify-content: center; }
+        .crypto { border: 1px solid #ddd; padding: 10px; margin: 10px; }
+        button { margin-top: 10px; padding: 5px 10px; }
+    </style>
+</head>
+<body>
+    <h1>Fake Crypto Tracker</h1>
+    <h2>Bank Balance: $<span id="bankBalance">1000.00</span> AUD</h2>
+    <button onclick="workForMoney()">Work & Earn</button>
+    <div class="crypto-container" id="cryptoContainer"></div>
+    <canvas id="cryptoChart"></canvas>
+
+    <script>
+        const cryptos = ["BTC", "ETH", "LTC", "XRP", "ADA", "DOT", "BCH", "LINK", "XLM", "DOGE"];
+        let bankBalance = 1000.00;
+        let prices = {};
+        let balances = {};
+        let history = {};
+
+        cryptos.forEach(crypto => {
+            prices[crypto] = (Math.random() * 50000 + 1000).toFixed(2);
+            balances[crypto] = (Math.random() * 10).toFixed(10);
+            history[crypto] = [];
+        });
+
+        function updateCryptoPrices() {
+            cryptos.forEach(crypto => {
+                let change = Math.random() < 0.98 ? (Math.random() * 10 - 5) : (Math.random() * 500 - 250);
+                prices[crypto] = (parseFloat(prices[crypto]) + change).toFixed(2);
+                history[crypto].push(prices[crypto]);
+                if (history[crypto].length > 50) history[crypto].shift();
+            });
+            renderCrypto();
+            updateChart();
+        }
+
+        function renderCrypto() {
+            let container = document.getElementById("cryptoContainer");
+            container.innerHTML = "";
+            cryptos.forEach(crypto => {
+                let value = (balances[crypto] * prices[crypto]).toFixed(2);
+                container.innerHTML += `<div class='crypto'><h3>${crypto}</h3><p>Balance: ${balances[crypto]}</p><p>Value: $${value} AUD</p></div>`;
+            });
+        }
+
+        function workForMoney() {
+            let earnings = (Math.random() * 249 + 1).toFixed(2);
+            bankBalance = (parseFloat(bankBalance) + parseFloat(earnings)).toFixed(2);
+            document.getElementById("bankBalance").innerText = bankBalance;
+        }
+
+        function updateChart() {
+            let ctx = document.getElementById("cryptoChart").getContext("2d");
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: Array.from({ length: 50 }, (_, i) => i + 1),
+                    datasets: cryptos.map(crypto => ({
+                        label: crypto,
+                        data: history[crypto],
+                        borderColor: '#' + Math.floor(Math.random() * 16777215).toString(16),
+                        fill: false
+                    }))
+                },
+                options: {
+                    responsive: true,
+                    scales: { y: { beginAtZero: false } }
+                }
+            });
+        }
+
+        setInterval(updateCryptoPrices, 500);
+        renderCrypto();
+    </script>
+</body>
+</html>
