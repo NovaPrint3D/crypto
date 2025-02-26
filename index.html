@@ -15,32 +15,16 @@
 <body>
     <h1>Fake Crypto Tracker</h1>
     <h2>Bank Balance: $<span id="bankBalance">1000.00</span> AUD</h2>
-    <button onclick="workForMoney()" id="workButton">Work & Earn</button>
+    <button onclick="workForMoney()">Work & Earn</button>
     <div class="crypto-container" id="cryptoContainer"></div>
     <canvas id="cryptoChart"></canvas>
-    <h3>Buy Crypto</h3>
-    <select id="cryptoSelect">
-        <option value="BTC">BTC</option>
-        <option value="ETH">ETH</option>
-        <option value="LTC">LTC</option>
-        <option value="XRP">XRP</option>
-        <option value="ADA">ADA</option>
-        <option value="DOT">DOT</option>
-        <option value="BCH">BCH</option>
-        <option value="LINK">LINK</option>
-        <option value="XLM">XLM</option>
-        <option value="DOGE">DOGE</option>
-    </select>
-    <input type="number" id="cryptoAmount" placeholder="Amount" min="0.0000000001" step="0.0000000001">
-    <button onclick="buyCrypto()">Buy</button>
-    
+
     <script>
         const cryptos = ["BTC", "ETH", "LTC", "XRP", "ADA", "DOT", "BCH", "LINK", "XLM", "DOGE"];
         let bankBalance = 1000.00;
         let prices = {};
         let balances = {};
         let history = {};
-        let workCooldown = false;
 
         cryptos.forEach(crypto => {
             prices[crypto] = (Math.random() * 50000 + 1000).toFixed(2);
@@ -69,20 +53,33 @@
         }
 
         function workForMoney() {
-            if (workCooldown) return;
-            workCooldown = true;
-            document.getElementById("workButton").disabled = true;
             let earnings = (Math.random() * 249 + 1).toFixed(2);
             bankBalance = (parseFloat(bankBalance) + parseFloat(earnings)).toFixed(2);
             document.getElementById("bankBalance").innerText = bankBalance;
-            setTimeout(() => {
-                workCooldown = false;
-                document.getElementById("workButton").disabled = false;
-            }, 60000);
         }
 
-        function buyCrypto() {
-            let crypto = document.getElementById("cryptoSelect").value;
-            let amount = parseFloat(document.getElementById("cryptoAmount").value);
+        function updateChart() {
+            let ctx = document.getElementById("cryptoChart").getContext("2d");
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: Array.from({ length: 50 }, (_, i) => i + 1),
+                    datasets: cryptos.map(crypto => ({
+                        label: crypto,
+                        data: history[crypto],
+                        borderColor: '#' + Math.floor(Math.random() * 16777215).toString(16),
+                        fill: false
+                    }))
+                },
+                options: {
+                    responsive: true,
+                    scales: { y: { beginAtZero: false } }
+                }
+            });
+        }
+
+        setInterval(updateCryptoPrices, 500);
+        renderCrypto();
+    </script>
 </body>
 </html>
