@@ -3,138 +3,112 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Crypto Empire</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <title>Fake Crypto Miner</title>
     <style>
-        body { font-family: Arial, sans-serif; text-align: center; }
-        .crypto-container { display: flex; flex-wrap: wrap; justify-content: center; }
-        .crypto { border: 1px solid #ddd; padding: 10px; margin: 10px; }
-        button { margin-top: 10px; padding: 5px 10px; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: monospace;
+        }
+
+        body {
+            background-color: black;
+            color: #00ff00;
+            font-size: 16px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+
+        .terminal {
+            width: 100%;
+            height: 100%;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .log {
+            flex-grow: 1;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+        }
+
+        button {
+            background: #00ff00;
+            color: black;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background: #00cc00;
+        }
+
+        #hashrate {
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
-    <h1>Crypto Empire</h1>
-    <h2>Bank Balance: $<span id="bankBalance">0.00</span> AUD</h2>
-    <button onclick="startMining()" id="mineButton">Start Mining</button>
-    <button onclick="workForMoney()" id="workButton">Work & Earn</button>
-    <h2>Mining Power: <span id="miningPower">1</span> Crypto/sec</h2>
-    <button onclick="upgradeMining()">Upgrade Mining (Cost: $<span id="miningUpgradeCost">100</span>)</button>
-    <div class="crypto-container" id="cryptoContainer"></div>
-    <canvas id="cryptoChart"></canvas>
-    <h3>Buy/Sell Crypto</h3>
-    <select id="cryptoSelect">
-        <option value="BTC">BTC</option>
-        <option value="ETH">ETH</option>
-        <option value="LTC">LTC</option>
-        <option value="XRP">XRP</option>
-        <option value="ADA">ADA</option>
-        <option value="DOT">DOT</option>
-        <option value="BCH">BCH</option>
-        <option value="LINK">LINK</option>
-        <option value="XLM">XLM</option>
-        <option value="DOGE">DOGE</option>
-    </select>
-    <input type="number" id="cryptoAmount" placeholder="Amount" min="0.0000000001" step="0.0000000001">
-    <button onclick="buyCrypto()">Buy</button>
-    <button onclick="sellCrypto()">Sell</button>
-    
+    <div class="terminal">
+        <div class="log" id="log"></div>
+        <div class="controls">
+            <button onclick="startMining()">Start Mining</button>
+            <button onclick="stopMining()">Stop Mining</button>
+        </div>
+    </div>
+
     <script>
-        const cryptos = ["BTC", "ETH", "LTC", "XRP", "ADA", "DOT", "BCH", "LINK", "XLM", "DOGE"];
-        let bankBalance = 0.00;
-        let prices = {};
-        let balances = {};
-        let history = {};
-        let workCooldown = false;
-        let miningPower = 1;
-        let miningUpgradeCost = 100;
-        let miningInterval;
+        let mining = false;
+        let logElement = document.getElementById("log");
 
-        cryptos.forEach(crypto => {
-            prices[crypto] = (Math.random() * 50000 + 1000).toFixed(2);
-            balances[crypto] = 0;
-            history[crypto] = [];
-        });
-
-        function updateCryptoPrices() {
-            cryptos.forEach(crypto => {
-                let change = Math.random() < 0.98 ? (Math.random() * 10 - 5) : (Math.random() * 500 - 250);
-                prices[crypto] = (parseFloat(prices[crypto]) + change).toFixed(2);
-                history[crypto].push(prices[crypto]);
-                if (history[crypto].length > 50) history[crypto].shift();
-            });
-            renderCrypto();
-            updateChart();
-        }
-
-        function renderCrypto() {
-            let container = document.getElementById("cryptoContainer");
-            container.innerHTML = "";
-            cryptos.forEach(crypto => {
-                let value = (balances[crypto] * prices[crypto]).toFixed(2);
-                container.innerHTML += `<div class='crypto'><h3>${crypto}</h3><p>Balance: ${balances[crypto]}</p><p>Value: $${value} AUD</p></div>`;
-            });
-        }
-
-        function workForMoney() {
-            if (workCooldown) return;
-            workCooldown = true;
-            document.getElementById("workButton").disabled = true;
-            let earnings = (Math.random() * 249 + 1).toFixed(2);
-            bankBalance = (parseFloat(bankBalance) + parseFloat(earnings)).toFixed(2);
-            document.getElementById("bankBalance").innerText = bankBalance;
-            setTimeout(() => {
-                workCooldown = false;
-                document.getElementById("workButton").disabled = false;
-            }, 120000);
-        }
-
-        function buyCrypto() {
-            let crypto = document.getElementById("cryptoSelect").value;
-            let amount = parseFloat(document.getElementById("cryptoAmount").value);
-            if (isNaN(amount) || amount <= 0) return;
-            let cost = (amount * prices[crypto]).toFixed(2);
-            if (bankBalance >= cost) {
-                bankBalance = (bankBalance - cost).toFixed(2);
-                balances[crypto] = (parseFloat(balances[crypto]) + amount).toFixed(10);
-                document.getElementById("bankBalance").innerText = bankBalance;
-                renderCrypto();
-            }
-        }
-
-        function sellCrypto() {
-            let crypto = document.getElementById("cryptoSelect").value;
-            let amount = parseFloat(document.getElementById("cryptoAmount").value);
-            if (isNaN(amount) || amount <= 0 || balances[crypto] < amount) return;
-            let revenue = (amount * prices[crypto]).toFixed(2);
-            balances[crypto] = (parseFloat(balances[crypto]) - amount).toFixed(10);
-            bankBalance = (parseFloat(bankBalance) + parseFloat(revenue)).toFixed(2);
-            document.getElementById("bankBalance").innerText = bankBalance;
-            renderCrypto();
+        function logMessage(message) {
+            let timestamp = new Date().toISOString().split("T")[1].split(".")[0];
+            logElement.innerHTML += `[${timestamp}] ${message}\n`;
+            logElement.scrollTop = logElement.scrollHeight;
         }
 
         function startMining() {
-            clearInterval(miningInterval);
-            miningInterval = setInterval(() => {
-                balances["BTC"] = (parseFloat(balances["BTC"]) + miningPower).toFixed(10);
-                renderCrypto();
-            }, 1000);
+            if (mining) return;
+            mining = true;
+            logMessage("Initializing mining sequence...");
+            mine();
         }
 
-        function upgradeMining() {
-            if (bankBalance >= miningUpgradeCost) {
-                bankBalance -= miningUpgradeCost;
-                miningPower *= 2;
-                miningUpgradeCost *= 2;
-                document.getElementById("bankBalance").innerText = bankBalance.toFixed(2);
-                document.getElementById("miningPower").innerText = miningPower;
-                document.getElementById("miningUpgradeCost").innerText = miningUpgradeCost;
+        function stopMining() {
+            mining = false;
+            logMessage("Mining process stopped.");
+        }
+
+        function mine() {
+            if (!mining) return;
+
+            let hashRate = (Math.random() * 500 + 500).toFixed(2);
+            logMessage(`Mining block... Hashrate: ${hashRate} H/s`);
+            
+            setTimeout(mine, Math.random() * 1000 + 500);
+        }
+
+        // Make the page fullscreen
+        document.addEventListener("keydown", function(event) {
+            if (event.key === "f") {
+                document.documentElement.requestFullscreen();
             }
-        }
+        });
 
-        function updateChart() {}
-
-        setInterval(updateCryptoPrices, 500);
-        renderCrypto();
+        logMessage("Press 'F' to enter fullscreen mode.");
     </script>
 </body>
 </html>
