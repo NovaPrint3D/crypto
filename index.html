@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fake Crypto Tracker</title>
+    <title>Crypto Empire</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body { font-family: Arial, sans-serif; text-align: center; }
@@ -13,9 +13,12 @@
     </style>
 </head>
 <body>
-    <h1>Fake Crypto Tracker</h1>
-    <h2>Bank Balance: $<span id="bankBalance">1000.00</span> AUD</h2>
+    <h1>Crypto Empire</h1>
+    <h2>Bank Balance: $<span id="bankBalance">0.00</span> AUD</h2>
+    <button onclick="startMining()" id="mineButton">Start Mining</button>
     <button onclick="workForMoney()" id="workButton">Work & Earn</button>
+    <h2>Mining Power: <span id="miningPower">1</span> Crypto/sec</h2>
+    <button onclick="upgradeMining()">Upgrade Mining (Cost: $<span id="miningUpgradeCost">100</span>)</button>
     <div class="crypto-container" id="cryptoContainer"></div>
     <canvas id="cryptoChart"></canvas>
     <h3>Buy/Sell Crypto</h3>
@@ -37,15 +40,18 @@
     
     <script>
         const cryptos = ["BTC", "ETH", "LTC", "XRP", "ADA", "DOT", "BCH", "LINK", "XLM", "DOGE"];
-        let bankBalance = 1000.00;
+        let bankBalance = 0.00;
         let prices = {};
         let balances = {};
         let history = {};
         let workCooldown = false;
+        let miningPower = 1;
+        let miningUpgradeCost = 100;
+        let miningInterval;
 
         cryptos.forEach(crypto => {
             prices[crypto] = (Math.random() * 50000 + 1000).toFixed(2);
-            balances[crypto] = (Math.random() * 10).toFixed(10);
+            balances[crypto] = 0;
             history[crypto] = [];
         });
 
@@ -106,25 +112,26 @@
             renderCrypto();
         }
 
-        function updateChart() {
-            let ctx = document.getElementById("cryptoChart").getContext("2d");
-            new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: Array.from({ length: 50 }, (_, i) => i + 1),
-                    datasets: cryptos.map(crypto => ({
-                        label: crypto,
-                        data: history[crypto],
-                        borderColor: '#' + Math.floor(Math.random() * 16777215).toString(16),
-                        fill: false
-                    }))
-                },
-                options: {
-                    responsive: true,
-                    scales: { y: { beginAtZero: false } }
-                }
-            });
+        function startMining() {
+            clearInterval(miningInterval);
+            miningInterval = setInterval(() => {
+                balances["BTC"] = (parseFloat(balances["BTC"]) + miningPower).toFixed(10);
+                renderCrypto();
+            }, 1000);
         }
+
+        function upgradeMining() {
+            if (bankBalance >= miningUpgradeCost) {
+                bankBalance -= miningUpgradeCost;
+                miningPower *= 2;
+                miningUpgradeCost *= 2;
+                document.getElementById("bankBalance").innerText = bankBalance.toFixed(2);
+                document.getElementById("miningPower").innerText = miningPower;
+                document.getElementById("miningUpgradeCost").innerText = miningUpgradeCost;
+            }
+        }
+
+        function updateChart() {}
 
         setInterval(updateCryptoPrices, 500);
         renderCrypto();
