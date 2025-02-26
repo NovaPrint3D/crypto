@@ -15,16 +15,33 @@
 <body>
     <h1>Fake Crypto Tracker</h1>
     <h2>Bank Balance: $<span id="bankBalance">1000.00</span> AUD</h2>
-    <button onclick="workForMoney()">Work & Earn</button>
+    <button onclick="workForMoney()" id="workButton">Work & Earn</button>
     <div class="crypto-container" id="cryptoContainer"></div>
     <canvas id="cryptoChart"></canvas>
-
+    <h3>Buy/Sell Crypto</h3>
+    <select id="cryptoSelect">
+        <option value="BTC">BTC</option>
+        <option value="ETH">ETH</option>
+        <option value="LTC">LTC</option>
+        <option value="XRP">XRP</option>
+        <option value="ADA">ADA</option>
+        <option value="DOT">DOT</option>
+        <option value="BCH">BCH</option>
+        <option value="LINK">LINK</option>
+        <option value="XLM">XLM</option>
+        <option value="DOGE">DOGE</option>
+    </select>
+    <input type="number" id="cryptoAmount" placeholder="Amount" min="0.0000000001" step="0.0000000001">
+    <button onclick="buyCrypto()">Buy</button>
+    <button onclick="sellCrypto()">Sell</button>
+    
     <script>
         const cryptos = ["BTC", "ETH", "LTC", "XRP", "ADA", "DOT", "BCH", "LINK", "XLM", "DOGE"];
         let bankBalance = 1000.00;
         let prices = {};
         let balances = {};
         let history = {};
+        let workCooldown = false;
 
         cryptos.forEach(crypto => {
             prices[crypto] = (Math.random() * 50000 + 1000).toFixed(2);
@@ -53,9 +70,40 @@
         }
 
         function workForMoney() {
+            if (workCooldown) return;
+            workCooldown = true;
+            document.getElementById("workButton").disabled = true;
             let earnings = (Math.random() * 249 + 1).toFixed(2);
             bankBalance = (parseFloat(bankBalance) + parseFloat(earnings)).toFixed(2);
             document.getElementById("bankBalance").innerText = bankBalance;
+            setTimeout(() => {
+                workCooldown = false;
+                document.getElementById("workButton").disabled = false;
+            }, 120000);
+        }
+
+        function buyCrypto() {
+            let crypto = document.getElementById("cryptoSelect").value;
+            let amount = parseFloat(document.getElementById("cryptoAmount").value);
+            if (isNaN(amount) || amount <= 0) return;
+            let cost = (amount * prices[crypto]).toFixed(2);
+            if (bankBalance >= cost) {
+                bankBalance = (bankBalance - cost).toFixed(2);
+                balances[crypto] = (parseFloat(balances[crypto]) + amount).toFixed(10);
+                document.getElementById("bankBalance").innerText = bankBalance;
+                renderCrypto();
+            }
+        }
+
+        function sellCrypto() {
+            let crypto = document.getElementById("cryptoSelect").value;
+            let amount = parseFloat(document.getElementById("cryptoAmount").value);
+            if (isNaN(amount) || amount <= 0 || balances[crypto] < amount) return;
+            let revenue = (amount * prices[crypto]).toFixed(2);
+            balances[crypto] = (parseFloat(balances[crypto]) - amount).toFixed(10);
+            bankBalance = (parseFloat(bankBalance) + parseFloat(revenue)).toFixed(2);
+            document.getElementById("bankBalance").innerText = bankBalance;
+            renderCrypto();
         }
 
         function updateChart() {
