@@ -38,6 +38,11 @@
             white-space: pre-wrap;
         }
 
+        .stats {
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
         .controls {
             display: flex;
             gap: 10px;
@@ -55,14 +60,13 @@
         button:hover {
             background: #00cc00;
         }
-
-        #hashrate {
-            font-weight: bold;
-        }
     </style>
 </head>
 <body>
     <div class="terminal">
+        <div class="stats">
+            Bitcoin Balance: <span id="balance">0.00000000</span> BTC
+        </div>
         <div class="log" id="log"></div>
         <div class="controls">
             <button onclick="startMining()">Start Mining</button>
@@ -73,6 +77,8 @@
     <script>
         let mining = false;
         let logElement = document.getElementById("log");
+        let balanceElement = document.getElementById("balance");
+        let balance = 0;
 
         function logMessage(message) {
             let timestamp = new Date().toISOString().split("T")[1].split(".")[0];
@@ -96,7 +102,11 @@
             if (!mining) return;
 
             let hashRate = (Math.random() * 500 + 500).toFixed(2);
-            logMessage(`Mining block... Hashrate: ${hashRate} H/s`);
+            let earned = (Math.random() * 0.00001).toFixed(8); // Small BTC earnings per cycle
+            balance += parseFloat(earned);
+            balanceElement.innerText = balance.toFixed(8);
+
+            logMessage(`Mining block... Hashrate: ${hashRate} H/s | Earned: ${earned} BTC`);
             
             setTimeout(mine, Math.random() * 1000 + 500);
         }
